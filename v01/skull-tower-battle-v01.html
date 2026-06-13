@@ -412,10 +412,10 @@ function getBodyScale(skull) { return skull.scale * 1.8; }
 
 function createSkullBody(skull, x, y) {
   const s = getBodyScale(skull);
-  const w = skull.rw * s, h = skull.rh * s;
-  const body = Bodies.rectangle(x, y, w, h, {
+  const scaledVerts = skull.verts.map(v=>({x:v.x*s, y:v.y*s}));
+  const body = Bodies.fromVertices(x, y, scaledVerts, {
     restitution:0.0, friction:0.6, frictionAir:0.05, density:0.05, label:skull.id,
-  });
+  }, true);
   body.skullData = skull;
   return body;
 }
@@ -514,9 +514,8 @@ function drawFrame() {
     ctx.rotate(body.angle);
     if(body===currentBody){ctx.shadowColor='rgba(200,169,110,0.6)';ctx.shadowBlur=12;}
     if(img && SKULL_IMG_LOADED[skull.id]){
-      const [iw, ih] = SKULL_SIZES[skull.id] || [skull.rw, skull.rh];
-      const scale = Math.min(skull.rw * 1.8 / iw, skull.rh * 1.8 / ih);
-      const w = iw * scale, h = ih * scale;
+      const s = getBodyScale(skull);
+      const w = skull.rw * s, h = skull.rh * s;
       ctx.drawImage(img, -w/2, -h/2, w, h);
     } else {
       // フォールバック：図形描画
