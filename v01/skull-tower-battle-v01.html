@@ -349,8 +349,11 @@ function makeElongatedVerts(w, h) {
 const { Engine, Bodies, Body, Composite } = Matter;
 
 const CANVAS_W = 280, CANVAS_H = 480;
-const GROUND_Y = CANVAS_H - 30;
+const GROUND_Y = CANVAS_H - 30; // 旧床（参照用）
 const WALL_T   = 40;
+const ISLAND_Y = Math.round(CANVAS_H * 0.77); // 島のY座標
+const ISLAND_W = 200;                          // 島の幅
+const ISLAND_T = 12;                           // 島の厚さ
 const DROP_Y   = 40;
 
 let engine, world, currentBody, currentSkull, nextSkull;
@@ -366,8 +369,8 @@ const dropGuide  = document.getElementById('drop-guide');
 function initEngine() {
   engine = Engine.create({ gravity: { y: 1.5 } });
   world  = engine.world;
-  const ground = Bodies.rectangle(CANVAS_W/2, GROUND_Y+WALL_T/2, CANVAS_W, WALL_T, {isStatic:true,label:'ground'});
-  Composite.add(world, [ground]);
+  const island = Bodies.rectangle(CANVAS_W/2, ISLAND_Y, ISLAND_W, ISLAND_T, {isStatic:true, label:'island', friction:0.8, restitution:0.1});
+  Composite.add(world, [island]);
   placedBodies=[]; currentBody=null; score=0; gameOver=false; isDropping=false; lastCollapseSkull=null;
   updateScore(0);
 }
@@ -444,12 +447,15 @@ function drawFrame() {
   ctx.strokeStyle='rgba(90,64,32,0.3)'; ctx.lineWidth=0.5;
   for(let y=GROUND_Y;y>0;y-=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
 
-  ctx.fillStyle='#3d2b1a'; ctx.fillRect(0,GROUND_Y,CANVAS_W,CANVAS_H-GROUND_Y);
-  ctx.fillStyle='#5a4020'; ctx.fillRect(0,GROUND_Y,CANVAS_W,2);
+  // 島の描画
+  ctx.fillStyle='#3d2b1a';
+  ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2, ISLAND_W, ISLAND_T);
+  ctx.fillStyle='#5a4020';
+  ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2, ISLAND_W, 2);
 
   const bodies = Composite.allBodies(world);
   for(const body of bodies){
-    if(body.label==='ground'||body.label==='wall') continue;
+    if(body.label==='island'||body.label==='wall') continue;
     const verts=body.vertices;
     ctx.save();
     ctx.beginPath(); ctx.moveTo(verts[0].x,verts[0].y);
@@ -471,7 +477,7 @@ function drawFrame() {
 
   if(!gameOver){
     for(const b of placedBodies){
-      if(b.position.x<0||b.position.x>CANVAS_W||b.position.y>CANVAS_H+50){triggerGameOver();break;}
+      if(b.position.y > ISLAND_Y + 60){triggerGameOver();break;}
     }
   }
 }
