@@ -459,9 +459,11 @@ function updateNextCard() {
 
 // 画像プリロード
 const SKULL_IMG_CACHE = {};
+const SKULL_IMG_LOADED = {};
 function preloadImages() {
   SKULLS.forEach(skull => {
     const img = new Image();
+    img.onload = () => { SKULL_IMG_LOADED[skull.id] = true; };
     img.src = SKULL_IMAGES[skull.id];
     SKULL_IMG_CACHE[skull.id] = img;
   });
@@ -469,7 +471,7 @@ function preloadImages() {
 
 function drawSkullShape(c, skull, cx, cy, scale) {
   const img = SKULL_IMG_CACHE[skull.id];
-  if (!img || !img.complete) return;
+  if (!img || !SKULL_IMG_LOADED[skull.id]) return;
   const [iw, ih] = SKULL_SIZES[skull.id] || [skull.rw, skull.rh];
   const maxW = 70 * scale, maxH = 56 * scale;
   const s = Math.min(maxW / iw, maxH / ih);
@@ -510,7 +512,7 @@ function drawFrame() {
     ctx.translate(body.position.x, body.position.y);
     ctx.rotate(body.angle);
     if(body===currentBody){ctx.shadowColor='rgba(200,169,110,0.6)';ctx.shadowBlur=12;}
-    if(img && img.complete){
+    if(img && SKULL_IMG_LOADED[skull.id]){
       const [iw, ih] = SKULL_SIZES[skull.id] || [skull.rw, skull.rh];
       const scale = Math.min(skull.rw * 1.8 / iw, skull.rh * 1.8 / ih);
       const w = iw * scale, h = ih * scale;
