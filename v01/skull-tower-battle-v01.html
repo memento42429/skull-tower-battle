@@ -367,7 +367,7 @@ const nextCtx    = nextCanvas.getContext('2d');
 const dropGuide  = document.getElementById('drop-guide');
 
 function initEngine() {
-  engine = Engine.create({ gravity: { y: 1.5 } });
+  engine = Engine.create({ gravity: { y: 0.5 } });
   world  = engine.world;
   const island = Bodies.rectangle(CANVAS_W/2, ISLAND_Y, ISLAND_W, ISLAND_T, {isStatic:true, label:'island', friction:0.8, restitution:0.1});
   Composite.add(world, [island]);
@@ -382,7 +382,7 @@ function createSkullBody(skull, x, y) {
   const s = getBodyScale(skull);
   const scaledVerts = skull.verts.map(v=>({x:v.x*s,y:v.y*s}));
   const body = Bodies.fromVertices(x, y, scaledVerts, {
-    restitution:0.2, friction:0.6, frictionAir:0.01, density:skull.weight/1000, label:skull.id,
+    restitution:0.2, friction:0.6, frictionAir:0.08, density:0.05, label:skull.id,
   });
   body.skullData = skull;
   return body;
