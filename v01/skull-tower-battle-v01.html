@@ -370,7 +370,7 @@ function initEngine() {
   engine = Engine.create({ gravity: { y: 1.2 } });
   world  = engine.world;
   const island = Bodies.rectangle(CANVAS_W/2, ISLAND_Y, ISLAND_W, ISLAND_T, {isStatic:true, label:'island', friction:50, restitution:0.1});
-  const STOPPER_H = 8;  // 段差の高さ（役物高さの約1/3）
+  const STOPPER_H = 16;  // 段差の高さ（役物高さの約2/3）
   const STOPPER_W = 4;  // 段差の幅
   const stopperL = Bodies.rectangle(CANVAS_W/2 - ISLAND_W/2 + STOPPER_W/2, ISLAND_Y - STOPPER_H/2, STOPPER_W, STOPPER_H, {isStatic:true, label:'island', friction:50, restitution:0.0});
   const stopperR = Bodies.rectangle(CANVAS_W/2 + ISLAND_W/2 - STOPPER_W/2, ISLAND_Y - STOPPER_H/2, STOPPER_W, STOPPER_H, {isStatic:true, label:'island', friction:50, restitution:0.0});
@@ -458,11 +458,11 @@ function drawFrame() {
   ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2, ISLAND_W, 2);
   // 段差（左右）
   ctx.fillStyle='#3d2b1a';
-  ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2 - 8, 4, 8);
-  ctx.fillRect(CANVAS_W/2 + ISLAND_W/2 - 4, ISLAND_Y - ISLAND_T/2 - 8, 4, 8);
+  ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2 - 16, 4, 16);
+  ctx.fillRect(CANVAS_W/2 + ISLAND_W/2 - 4, ISLAND_Y - ISLAND_T/2 - 16, 4, 16);
   ctx.fillStyle='#5a4020';
-  ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2 - 8, 2, 8);
-  ctx.fillRect(CANVAS_W/2 + ISLAND_W/2 - 4, ISLAND_Y - ISLAND_T/2 - 8, 2, 8);
+  ctx.fillRect(CANVAS_W/2 - ISLAND_W/2, ISLAND_Y - ISLAND_T/2 - 16, 2, 16);
+  ctx.fillRect(CANVAS_W/2 + ISLAND_W/2 - 4, ISLAND_Y - ISLAND_T/2 - 16, 2, 16);
 
   const bodies = Composite.allBodies(world);
   for(const body of bodies){
