@@ -369,8 +369,9 @@ const dropGuide  = document.getElementById('drop-guide');
 function initEngine() {
   engine = Engine.create({ gravity: { y: 1.2 } });
   world  = engine.world;
-  const island = Bodies.rectangle(CANVAS_W/2, ISLAND_Y, ISLAND_W, ISLAND_T, {isStatic:true, label:'island', friction:50, restitution:0.1});
-  Composite.add(world, [island]);
+  const island = Bodies.rectangle(CANVAS_W/2, ISLAND_Y, ISLAND_W, ISLAND_T, {isStatic:true, label:'island', friction:50, restitution:0.0});
+  const islandTop = Bodies.rectangle(CANVAS_W/2, ISLAND_Y - ISLAND_T/2, ISLAND_W, 2, {isStatic:true, label:'island', friction:50, frictionStatic:50, restitution:0.0});
+  Composite.add(world, [island, islandTop]);
   placedBodies=[]; currentBody=null; score=0; gameOver=false; isDropping=false; lastCollapseSkull=null;
   updateScore(0);
 }
