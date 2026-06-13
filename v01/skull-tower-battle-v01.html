@@ -440,7 +440,7 @@ function dropCurrent() {
     const speed = Math.sqrt(currentBody.velocity.x**2+currentBody.velocity.y**2);
     if (speed < 0.3 && isDropping) {
       placedBodies.push(currentBody); currentBody=null; clearInterval(checkRest);
-      updateScore(score + Math.round(currentSkull.weight*10+5));
+      updateScore(score + 10);
       lastCollapseSkull = currentSkull;
       setTimeout(()=>{ if(!gameOver) spawnNext(); }, 300);
     }
@@ -453,7 +453,7 @@ function updateNextCard() {
   const s = nextSkull;
   document.getElementById('next-name-jp').textContent  = s.nameJp;
   document.getElementById('next-name-sci').textContent = s.nameSci;
-  document.getElementById('next-weight').textContent   = `体重目安 ${s.weight} kg`;
+  document.getElementById('next-weight').textContent   = s.specimenNo || '—';
   nextCtx.clearRect(0,0,80,64);
   drawSkullShape(nextCtx, s, 40, 32, 1.0);
 }
