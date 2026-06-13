@@ -367,9 +367,7 @@ function initEngine() {
   engine = Engine.create({ gravity: { y: 1.5 } });
   world  = engine.world;
   const ground = Bodies.rectangle(CANVAS_W/2, GROUND_Y+WALL_T/2, CANVAS_W, WALL_T, {isStatic:true,label:'ground'});
-  const wallL  = Bodies.rectangle(-WALL_T/2,  CANVAS_H/2, WALL_T, CANVAS_H, {isStatic:true,label:'wall'});
-  const wallR  = Bodies.rectangle(CANVAS_W+WALL_T/2, CANVAS_H/2, WALL_T, CANVAS_H, {isStatic:true,label:'wall'});
-  Composite.add(world, [ground, wallL, wallR]);
+  Composite.add(world, [ground]);
   placedBodies=[]; currentBody=null; score=0; gameOver=false; isDropping=false; lastCollapseSkull=null;
   updateScore(0);
 }
