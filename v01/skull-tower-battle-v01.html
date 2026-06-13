@@ -413,9 +413,22 @@ function getBodyScale(skull) { return skull.scale * 1.8; }
 function createSkullBody(skull, x, y) {
   const s = getBodyScale(skull);
   const scaledVerts = skull.verts.map(v=>({x:v.x*s, y:v.y*s}));
+  // 指定した頂点群の視覚的中心（バウンディングボックス中心）
+  const xs = scaledVerts.map(v=>v.x), ys = scaledVerts.map(v=>v.y);
+  const visualCx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const visualCy = (Math.min(...ys) + Math.max(...ys)) / 2;
+
   const body = Bodies.fromVertices(x, y, scaledVerts, {
     restitution:0.0, friction:1.0, frictionStatic:10.0, frictionAir:0.05, density:0.05, label:skull.id,
   }, true);
+
+  // Matter.jsが設定した重心と視覚的中心のズレを記録
+  // body.position は fromVertices 後に Matter.js が再計算した重心
+  // 指定座標(x,y)からのズレ = body.position - (x,y)
+  // 視覚的中心は (x + visualCx, y + visualCy) になるべきなので
+  // 描画オフセット = visualCx - (body.position.x - x)
+  body.renderOffsetX = visualCx - (body.position.x - x);
+  body.renderOffsetY = visualCy - (body.position.y - y);
   body.skullData = skull;
   return body;
 }
@@ -516,7 +529,9 @@ function drawFrame() {
     if(img && SKULL_IMG_LOADED[skull.id]){
       const s = getBodyScale(skull);
       const w = skull.rw * s, h = skull.rh * s;
-      ctx.drawImage(img, -w/2, -h/2, w, h);
+      const ox = body.renderOffsetX || 0;
+      const oy = body.renderOffsetY || 0;
+      ctx.drawImage(img, -w/2 + ox, -h/2 + oy, w, h);
     } else {
       // フォールバック：図形描画
       const verts=body.vertices;
@@ -525,6 +540,23 @@ function drawFrame() {
       ctx.closePath();
       ctx.fillStyle=skull.color||'#d0c4a8'; ctx.fill();
     }
+    ctx.restore();
+
+    // デバッグ：当たり判定を赤線で表示
+    ctx.save();
+    ctx.strokeStyle='rgba(255,50,50,0.8)';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    const verts=body.vertices;
+    ctx.moveTo(verts[0].x, verts[0].y);
+    for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i].x, verts[i].y);
+    ctx.closePath();
+    ctx.stroke();
+    // 重心を青点で表示
+    ctx.fillStyle='rgba(50,150,255,0.9)';
+    ctx.beginPath();
+    ctx.arc(body.position.x, body.position.y, 3, 0, Math.PI*2);
+    ctx.fill();
     ctx.restore();
   }
 
