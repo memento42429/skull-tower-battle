@@ -477,8 +477,9 @@ function drawFrame() {
 
   if(!gameOver){
     for(const b of placedBodies){
-      if(b.position.y > ISLAND_Y + 60){triggerGameOver();break;}
+      if(b.position.y > ISLAND_Y + 60 || b.position.y > CANVAS_H){triggerGameOver();break;}
     }
+    if(!gameOver && currentBody && currentBody.position.y > CANVAS_H){triggerGameOver();}
   }
 }
 
