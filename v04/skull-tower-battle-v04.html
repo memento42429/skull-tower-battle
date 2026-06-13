@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>頭骨タワーバトル — 路上博物館</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a1208; --accent: #c8a96e;
+    --bone: #e8e0d0; --bone-dark: #b8a890; --panel: #221a0e; --border: #5a4020;
+  }
+  body {
+    background: var(--bg); color: var(--bone);
+    font-family: 'IM Fell English', Georgia, serif;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; overflow-x: hidden; user-select: none;
+  }
+  header {
+    width: 100%; max-width: 480px;
+    padding: 14px 20px 8px; text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 { font-size: 1.5rem; letter-spacing: 0.08em; color: var(--accent); }
+  header p { font-size: 0.65rem; font-family: monospace; color: var(--bone-dark); letter-spacing: 0.15em; margin-top: 2px; font-style: italic; }
+  #game-wrapper {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 10px; max-width: 520px; width: 100%;
+  }
+  #canvas-container { position: relative; flex-shrink: 0; }
+  #gameCanvas { display: block; border: 1px solid var(--border); cursor: crosshair; }
+  #drop-guide {
+    position: absolute; top: 0; width: 0; pointer-events: none;
+    border-left: 1px dashed rgba(200,169,110,0.4);
+  }
+  #side-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 110px; }
+  .panel-box { background: var(--panel); border: 1px solid var(--border); padding: 10px; }
+  .panel-label { font-family: monospace; font-size: 0.58rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; display: block; }
+  #score-display { font-size: 2rem; color: var(--bone); line-height: 1; }
+  #count-display { font-family: monospace; font-size: 0.85rem; color: var(--bone-dark); }
+  #next-card { position: relative; overflow: hidden; }
+  #next-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(200,169,110,0.03) 8px, rgba(200,169,110,0.03) 9px);
+  }
+  #next-skull-canvas { display: block; margin: 6px auto; }
+  #next-name-jp { font-size: 0.82rem; color: var(--bone); text-align: center; margin-top: 4px; }
+  #next-name-sci { font-size: 0.58rem; font-style: italic; color: var(--bone-dark); text-align: center; font-family: 'IM Fell English', serif; margin-top: 2px; }
+  #next-weight { font-family: monospace; font-size: 0.58rem; color: var(--accent); text-align: center; margin-top: 5px; }
+  #overlay {
+    display: none; position: fixed; inset: 0; background: rgba(10,8,4,0.9);
+    justify-content: center; align-items: center; flex-direction: column; gap: 18px; z-index: 100;
+  }
+  #overlay.visible { display: flex; }
+  #overlay h2 { font-size: 2rem; color: var(--accent); letter-spacing: 0.1em; }
+  #overlay .result-score { font-family: monospace; font-size: 1rem; color: var(--bone); }
+  #species-card { background: var(--panel); border: 1px solid var(--accent); padding: 14px 22px; max-width: 260px; text-align: center; }
+  #species-card .sp-label { font-family: monospace; font-size: 0.52rem; letter-spacing: 0.25em; color: var(--accent); margin-bottom: 7px; display: block; }
+  #species-card .sp-name { font-size: 1.05rem; color: var(--bone); }
+  #species-card .sp-sci { font-size: 0.65rem; font-style: italic; color: var(--bone-dark); margin-top: 3px; }
+  #species-card .sp-fact { font-size: 0.68rem; color: var(--bone-dark); margin-top: 9px; line-height: 1.6; font-family: monospace; }
+  #restart-btn {
+    background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    font-family: 'IM Fell English', serif; font-size: 1rem; padding: 9px 30px;
+    cursor: pointer; letter-spacing: 0.15em; transition: background 0.2s;
+  }
+  #restart-btn:hover { background: rgba(200,169,110,0.15); }
+  footer { font-family: monospace; font-size: 0.58rem; color: var(--border); letter-spacing: 0.15em; padding: 14px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>頭骨タワーバトル</h1>
+  <p>SKULL TOWER — 路上博物館 prototype v0.4</p>
+</header>
+<div id="game-wrapper">
+  <div id="canvas-container">
+    <canvas id="gameCanvas" width="300" height="500"></canvas>
+    <div id="drop-guide"></div>
+  </div>
+  <div id="side-panel">
+    <div class="panel-box">
+      <span class="panel-label">Score</span>
+      <div id="score-display">0</div>
+    </div>
+    <div class="panel-box">
+      <span class="panel-label">Count</span>
+      <div id="count-display">0 個</div>
+    </div>
+    <div class="panel-box" id="next-card">
+      <span class="panel-label">Next</span>
+      <canvas id="next-skull-canvas" width="80" height="64"></canvas>
+      <div id="next-name-jp">—</div>
+      <div id="next-name-sci">—</div>
+      <div id="next-weight">—</div>
+    </div>
+  </div>
+</div>
+<div id="overlay">
+  <h2>COLLAPSED</h2>
+  <div class="result-score" id="final-score-text"></div>
+  <div id="species-card">
+    <span class="sp-label">LAST SPECIMEN</span>
+    <div class="sp-name" id="sp-name-jp"></div>
+    <div class="sp-sci" id="sp-name-sci"></div>
+    <div class="sp-fact" id="sp-fact"></div>
+  </div>
+  <button id="restart-btn" onclick="restartGame()">もう一度 / RETRY</button>
+</div>
+<footer>一般社団法人路上博物館 — 標本データを用いた教育ゲームプロトタイプ</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+// ============================================================
+// 標本データ
+// ============================================================
+const SKULLS = [
+  { id:'mouse',  nameJp:'ハツカネズミ',  nameSci:'Mus musculus',             weight:0.02, fact:'門歯は一生伸び続ける。', color:'#d8ccb4', rw:22, rh:14 },
+  { id:'rat',    nameJp:'ドブネズミ',    nameSci:'Rattus norvegicus',        weight:0.3,  fact:'吻部が長く頑丈な構造。', color:'#d0c4ac', rw:30, rh:16 },
+  { id:'rabbit', nameJp:'ノウサギ',      nameSci:'Lepus brachyurus',         weight:1.8,  fact:'眼窩が非常に大きい。',   color:'#ccc0a8', rw:34, rh:22 },
+  { id:'cat',    nameJp:'イエネコ',      nameSci:'Felis catus',              weight:3.5,  fact:'短い吻部と大きな脳函。', color:'#c8bc9e', rw:36, rh:26 },
+  { id:'fox',    nameJp:'キツネ',        nameSci:'Vulpes vulpes',            weight:5.0,  fact:'長い吻部が嗅覚を示す。', color:'#c0b496', rw:48, rh:22 },
+  { id:'tanuki', nameJp:'タヌキ',        nameSci:'Nyctereutes procyonoides', weight:6.0,  fact:'雑食性、犬歯は小さめ。', color:'#b8ac90', rw:42, rh:28 },
+  { id:'deer',   nameJp:'ニホンジカ',    nameSci:'Cervus nippon',            weight:80,   fact:'角は毎年生え変わる。',   color:'#b0a48a', rw:60, rh:32 },
+  { id:'boar',   nameJp:'イノシシ',      nameSci:'Sus scrofa',               weight:90,   fact:'発達した犬歯が特徴。',   color:'#a89c82', rw:66, rh:36 },
+];
+
+// ============================================================
+// キャンバス・エンジン定数
+// ============================================================
+const CW = 300, CH = 500;
+
+// ボウル定義（これが唯一の真実）
+const BOWL_CX     = CW / 2;
+const BOWL_W      = 190;   // ボウル内側の幅
+const BOWL_H      = 70;    // ボウル内側の深さ
+const BOWL_WALL_T = 40;    // 壁の厚さ（すり抜け防止のため厚く）
+// ボウル上端Y（縁の位置）
+const BOWL_RIM_Y  = CH - 80;
+// ボウル底Y
+const BOWL_BOT_Y  = BOWL_RIM_Y + BOWL_H;
+
+// 落下開始Y（ボウル上端より上）
+const DROP_Y = 30;
+
+// ゲームオーバー判定：ボウル縁より GO_MARGIN px 上に出たら終了
+const GO_MARGIN = 30;
+
+// ============================================================
+// Matter.js
+// ============================================================
+const { Engine, Bodies, Body, Composite } = Matter;
+
+let engine, world;
+let currentBody = null, currentSkull = null, nextSkull = null;
+let score = 0, placedCount = 0;
+let dropX = CW / 2;
+let isDropping = false, gameOver = false;
+let placedBodies = [];
+let lastSkull = null;
+let restTimer = null;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+const nCvs   = document.getElementById('next-skull-canvas');
+const nCtx   = nCvs.getContext('2d');
+
+// ============================================================
+// ボウル生成（シンプルな3ピース：底板＋左壁＋右壁）
+// ============================================================
+function createBowl() {
+  const hw = BOWL_W / 2;
+
+  // 底板
+  const bottom = Bodies.rectangle(
+    BOWL_CX, BOWL_BOT_Y + BOWL_WALL_T / 2,
+    BOWL_W, BOWL_WALL_T,
+    { isStatic: true, label: 'bowl', friction: 0.9, restitution: 0.02,
+      collisionFilter: { category: 0x0001, mask: 0x0002 } }
+  );
+  // 左壁
+  const wallL = Bodies.rectangle(
+    BOWL_CX - hw - BOWL_WALL_T / 2, BOWL_RIM_Y + BOWL_H / 2,
+    BOWL_WALL_T, BOWL_H + BOWL_WALL_T,
+    { isStatic: true, label: 'bowl', friction: 0.9, restitution: 0.02,
+      collisionFilter: { category: 0x0001, mask: 0x0002 } }
+  );
+  // 右壁
+  const wallR = Bodies.rectangle(
+    BOWL_CX + hw + BOWL_WALL_T / 2, BOWL_RIM_Y + BOWL_H / 2,
+    BOWL_WALL_T, BOWL_H + BOWL_WALL_T,
+    { isStatic: true, label: 'bowl', friction: 0.9, restitution: 0.02,
+      collisionFilter: { category: 0x0001, mask: 0x0002 } }
+  );
+  return [bottom, wallL, wallR];
+}
+
+// ============================================================
+// エンジン初期化
+// ============================================================
+function initEngine() {
+  engine = Engine.create({
+    gravity: { y: 2.5 },
+    positionIterations: 10,   // デフォルト6→10（衝突解決精度UP）
+    velocityIterations: 8,    // デフォルト4→8
+    constraintIterations: 4,
+  });
+  engine.world.gravity.scale = 0.002;
+  // slop（めり込み許容量）を最小化
+  Matter.Resolver._restingThresh = 0.001;
+  world  = engine.world;
+
+  Composite.add(world, createBowl());
+
+  // 画面外フォールバック床（ボウルを外れた物が消えないよう）
+  const floor = Bodies.rectangle(CW/2, CH + 60, CW * 3, 40, { isStatic: true, label: 'floor' });
+  Composite.add(world, floor);
+
+  placedBodies = []; currentBody = null;
+  score = 0; placedCount = 0;
+  gameOver = false; isDropping = false; lastSkull = null;
+  updateUI();
+}
+
+// ============================================================
+// 頭骨ボディ生成（矩形で確実に位置が決まる）
+// ============================================================
+function createSkullBody(skull, x, y) {
+  const body = Bodies.rectangle(x, y, skull.rw, skull.rh, {
+    restitution: 0.04,
+    friction: 0.85,
+    frictionStatic: 1.0,
+    frictionAir: 0.015,
+    density: 0.05,
+    collisionFilter: { category: 0x0002, mask: 0x0001 | 0x0002 },
+    chamfer: { radius: Math.min(skull.rw, skull.rh) * 0.2 },
+  });
+  body.skullData = skull;
+  body.label = skull.id;
+  return body;
+}
+
+// ============================================================
+// スポーン・落下
+// ============================================================
+function pickRandom() {
+  return SKULLS[Math.floor(Math.random() * SKULLS.length)];
+}
+
+function spawnNext() {
+  if (!nextSkull) nextSkull = pickRandom();
+  currentSkull = nextSkull;
+  nextSkull = pickRandom();
+
+  currentBody = createSkullBody(currentSkull, dropX, DROP_Y);
+  Body.setStatic(currentBody, true);
+  Composite.add(world, currentBody);
+  isDropping = false;
+  updateNextCard();
+}
+
+function dropCurrent() {
+  if (!currentBody || isDropping || gameOver) return;
+  Body.setStatic(currentBody, false);
+  isDropping = true;
+  lastSkull = currentSkull;
+
+  let elapsed = 0;
+  restTimer = setInterval(() => {
+    if (!currentBody) { clearInterval(restTimer); return; }
+    elapsed += 80;
+    const spd = Math.hypot(currentBody.velocity.x, currentBody.velocity.y);
+    const ang = Math.abs(currentBody.angularVelocity);
+    if ((spd < 0.3 && ang < 0.03) || elapsed > 5000) {
+      clearInterval(restTimer);
+      placedBodies.push(currentBody);
+      placedCount++;
+      score += Math.max(10, Math.round(60 / (currentSkull.weight + 0.5)));
+      currentBody = null;
+      updateUI();
+      setTimeout(() => { if (!gameOver) spawnNext(); }, 300);
+    }
+  }, 80);
+}
+
+// ============================================================
+// UI
+// ============================================================
+function updateUI() {
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('count-display').textContent = placedCount + ' 個';
+}
+
+function updateNextCard() {
+  document.getElementById('next-name-jp').textContent  = nextSkull.nameJp;
+  document.getElementById('next-name-sci').textContent = nextSkull.nameSci;
+  document.getElementById('next-weight').textContent   = `体重目安 ${nextSkull.weight} kg`;
+  nCtx.clearRect(0, 0, 80, 64);
+  drawSkullRect(nCtx, nextSkull, 40, 32);
+}
+
+// ============================================================
+// 描画ヘルパー
+// ============================================================
+function drawSkullRect(c, skull, cx, cy, alpha) {
+  const scale = Math.min(70 / skull.rw, 55 / skull.rh, 1.8);
+  const w = skull.rw * scale, h = skull.rh * scale;
+  const r = Math.min(w, h) * 0.25;
+  c.save();
+  if (alpha !== undefined) c.globalAlpha = alpha;
+  c.beginPath();
+  c.roundRect(cx - w/2, cy - h/2, w, h, r);
+  c.fillStyle = skull.color;
+  c.fill();
+  c.strokeStyle = 'rgba(200,169,110,0.5)';
+  c.lineWidth = 1;
+  c.stroke();
+  // 目の穴っぽいマーク（装飾）
+  c.fillStyle = 'rgba(0,0,0,0.25)';
+  const ew = w * 0.12, eh = h * 0.18;
+  c.beginPath(); c.ellipse(cx - w*0.18, cy - h*0.05, ew, eh, 0, 0, Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx + w*0.18, cy - h*0.05, ew, eh, 0, 0, Math.PI*2); c.fill();
+  c.restore();
+}
+
+// ============================================================
+// ボウル描画（見た目）
+// ============================================================
+function drawBowl() {
+  const hw = BOWL_W / 2;
+  const wt = BOWL_WALL_T;
+
+  ctx.save();
+
+  // ボウル本体（外形）
+  ctx.beginPath();
+  ctx.moveTo(BOWL_CX - hw - wt, BOWL_RIM_Y);
+  ctx.lineTo(BOWL_CX - hw - wt, BOWL_BOT_Y + wt);
+  ctx.lineTo(BOWL_CX + hw + wt, BOWL_BOT_Y + wt);
+  ctx.lineTo(BOWL_CX + hw + wt, BOWL_RIM_Y);
+  ctx.lineTo(BOWL_CX + hw,      BOWL_RIM_Y);
+  ctx.lineTo(BOWL_CX + hw,      BOWL_BOT_Y);
+  ctx.lineTo(BOWL_CX - hw,      BOWL_BOT_Y);
+  ctx.lineTo(BOWL_CX - hw,      BOWL_RIM_Y);
+  ctx.closePath();
+
+  const woodGrad = ctx.createLinearGradient(BOWL_CX - hw - wt, 0, BOWL_CX + hw + wt, 0);
+  woodGrad.addColorStop(0,   '#1e1508');
+  woodGrad.addColorStop(0.2, '#3a2510');
+  woodGrad.addColorStop(0.5, '#5a3a1a');
+  woodGrad.addColorStop(0.8, '#3a2510');
+  woodGrad.addColorStop(1,   '#1e1508');
+  ctx.fillStyle = woodGrad;
+  ctx.fill();
+
+  // ボウル内側（暗い）
+  ctx.fillStyle = '#100d06';
+  ctx.fillRect(BOWL_CX - hw, BOWL_RIM_Y, BOWL_W, BOWL_H);
+
+  // 縁のハイライト
+  ctx.strokeStyle = 'rgba(200,169,110,0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(BOWL_CX - hw - wt, BOWL_RIM_Y);
+  ctx.lineTo(BOWL_CX + hw + wt, BOWL_RIM_Y);
+  ctx.stroke();
+
+  // 内壁のうっすら線
+  ctx.strokeStyle = 'rgba(200,169,110,0.15)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(BOWL_CX - hw, BOWL_RIM_Y, BOWL_W, BOWL_H);
+
+  ctx.restore();
+}
+
+// ============================================================
+// ゲームオーバー判定ライン（デバッグ表示付き）
+// ============================================================
+const GAME_OVER_Y = BOWL_RIM_Y - GO_MARGIN;
+
+function checkGameOver() {
+  if (gameOver) return;
+  for (const b of placedBodies) {
+    // ボウル縁より GO_MARGIN 上を超えたらアウト
+    if (b.bounds.min.y < GAME_OVER_Y) {
+      triggerGameOver(); return;
+    }
+    // ボウル横から大きく外れたらアウト
+    if (b.position.x < BOWL_CX - BOWL_W/2 - 40 ||
+        b.position.x > BOWL_CX + BOWL_W/2 + 40) {
+      triggerGameOver(); return;
+    }
+  }
+}
+
+// ============================================================
+// メイン描画ループ
+// ============================================================
+function drawFrame() {
+  ctx.clearRect(0, 0, CW, CH);
+
+  // 背景
+  const bg = ctx.createLinearGradient(0, 0, 0, CH);
+  bg.addColorStop(0, '#0c0905'); bg.addColorStop(1, '#1a1208');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
+
+  // 薄い補助線
+  ctx.strokeStyle = 'rgba(90,64,32,0.18)'; ctx.lineWidth = 0.5;
+  for (let y = BOWL_RIM_Y; y > 20; y -= 50) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+  }
+
+  // ゲームオーバーラインをうっすら表示
+  ctx.strokeStyle = 'rgba(200,80,60,0.2)'; ctx.lineWidth = 1;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath(); ctx.moveTo(0, GAME_OVER_Y); ctx.lineTo(CW, GAME_OVER_Y); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ボウル（物理ボディの後ろに描くと隠れるので先に）
+  drawBowl();
+
+  // 物理ボディ
+  const bodies = Composite.allBodies(world);
+  for (const body of bodies) {
+    if (body.label === 'bowl' || body.label === 'floor') continue;
+    const skull = body.skullData;
+    if (!skull) continue;
+
+    ctx.save();
+    ctx.translate(body.position.x, body.position.y);
+    ctx.rotate(body.angle);
+    const w = skull.rw, h = skull.rh;
+    const r = Math.min(w, h) * 0.25;
+
+    if (body === currentBody) {
+      ctx.shadowColor = 'rgba(200,169,110,0.8)';
+      ctx.shadowBlur = 16;
+    }
+    ctx.beginPath();
+    ctx.roundRect(-w/2, -h/2, w, h, r);
+    ctx.fillStyle = skull.color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(200,169,110,0.4)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // 目の穴（装飾）
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    const ew = w*0.12, eh = h*0.18;
+    ctx.beginPath(); ctx.ellipse(-w*0.18, -h*0.05, ew, eh, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse( w*0.18, -h*0.05, ew, eh, 0, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // ゲームオーバー判定
+  checkGameOver();
+}
+
+// ============================================================
+// ゲームオーバー
+// ============================================================
+function triggerGameOver() {
+  if (gameOver) return;
+  gameOver = true;
+  if (restTimer) clearInterval(restTimer);
+  const skull = lastSkull || SKULLS[0];
+  document.getElementById('final-score-text').textContent = `SCORE: ${score} pt  /  ${placedCount} 個`;
+  document.getElementById('sp-name-jp').textContent  = skull.nameJp;
+  document.getElementById('sp-name-sci').textContent = skull.nameSci;
+  document.getElementById('sp-fact').textContent     = skull.fact;
+  document.getElementById('overlay').classList.add('visible');
+}
+
+// ============================================================
+// 入力
+// ============================================================
+canvas.addEventListener('mousemove', (e) => {
+  if (isDropping || gameOver) return;
+  const rect = canvas.getBoundingClientRect();
+  const sx = CW / rect.width;
+  dropX = Math.max(BOWL_CX - BOWL_W/2 + 10,
+          Math.min(BOWL_CX + BOWL_W/2 - 10, (e.clientX - rect.left) * sx));
+  if (currentBody) Body.setPosition(currentBody, { x: dropX, y: DROP_Y });
+  const guide = document.getElementById('drop-guide');
+  guide.style.left = ((e.clientX - rect.left)) + 'px';
+  guide.style.height = BOWL_RIM_Y + 'px';
+  guide.style.display = 'block';
+});
+canvas.addEventListener('mouseleave', () => {
+  document.getElementById('drop-guide').style.display = 'none';
+});
+canvas.addEventListener('click', dropCurrent);
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (isDropping || gameOver) return;
+  const rect = canvas.getBoundingClientRect();
+  const sx = CW / rect.width;
+  dropX = Math.max(BOWL_CX - BOWL_W/2 + 10,
+          Math.min(BOWL_CX + BOWL_W/2 - 10, (e.touches[0].clientX - rect.left) * sx));
+  if (currentBody) Body.setPosition(currentBody, { x: dropX, y: DROP_Y });
+}, { passive: false });
+canvas.addEventListener('touchend', dropCurrent);
+
+// ============================================================
+// メインループ
+// ============================================================
+let lastTime = 0;
+function loop(ts) {
+  const delta = Math.min(ts - lastTime, 33);
+  lastTime = ts;
+  Engine.update(engine, delta);
+
+  // 速度キャップ：高速移動によるトンネリングを防ぐ
+  const MAX_SPEED = 18;
+  const allBodies = Composite.allBodies(world);
+  for (const b of allBodies) {
+    if (b.isStatic) continue;
+    const spd = Math.hypot(b.velocity.x, b.velocity.y);
+    if (spd > MAX_SPEED) {
+      const scale = MAX_SPEED / spd;
+      Body.setVelocity(b, { x: b.velocity.x * scale, y: b.velocity.y * scale });
+    }
+  }
+
+  drawFrame();
+  requestAnimationFrame(loop);
+}
+
+function restartGame() {
+  document.getElementById('overlay').classList.remove('visible');
+  Composite.clear(world, false);
+  initEngine();
+  dropX = CW / 2;
+  nextSkull = pickRandom();
+  spawnNext();
+}
+
+// 起動
+initEngine();
+nextSkull = pickRandom();
+spawnNext();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
