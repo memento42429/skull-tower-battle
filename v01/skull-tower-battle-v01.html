@@ -195,7 +195,8 @@
     align-items: center;
     flex-direction: column;
     gap: 20px;
-    z-index: 100;
+    z-index: 1000;
+    pointer-events: auto;
   }
   #overlay.visible { display: flex; }
 
@@ -414,7 +415,6 @@ function createSkullBody(skull, x, y) {
   const w = skull.rw * s, h = skull.rh * s;
   const body = Bodies.rectangle(x, y, w, h, {
     restitution:0.0, friction:0.6, frictionAir:0.05, density:0.05, label:skull.id,
-    chamfer: { radius: Math.min(w, h) * 0.2 },
   });
   body.skullData = skull;
   return body;
@@ -560,7 +560,7 @@ canvas.addEventListener('mousemove',(e)=>{
   if(currentBody) Body.setPosition(currentBody,{x:dropX,y:DROP_Y});
   dropGuide.style.left=dropX+'px'; dropGuide.style.height=CANVAS_H+'px'; dropGuide.style.display='block';
 });
-canvas.addEventListener('click',()=>{ dropCurrent(); });
+canvas.addEventListener('click',()=>{ if(!gameOver) dropCurrent(); });
 canvas.addEventListener('touchmove',(e)=>{
   e.preventDefault();
   if(isDropping||gameOver) return;
@@ -568,7 +568,7 @@ canvas.addEventListener('touchmove',(e)=>{
   dropX=Math.max(20,Math.min(CANVAS_W-20,e.touches[0].clientX-rect.left));
   if(currentBody) Body.setPosition(currentBody,{x:dropX,y:DROP_Y});
 },{passive:false});
-canvas.addEventListener('touchend',()=>{ dropCurrent(); });
+canvas.addEventListener('touchend',(e)=>{ if(!gameOver) dropCurrent(); });
 
 function buildRuler() {
   const ruler=document.getElementById('ruler'); ruler.innerHTML='';
