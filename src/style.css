@@ -1,0 +1,261 @@
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #1a1208;
+    --ground:    #3d2b1a;
+    --accent:    #c8a96e;
+    --bone:      #e8e0d0;
+    --bone-dark: #b8a890;
+    --panel:     #221a0e;
+    --border:    #5a4020;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--bone);
+    font-family: 'IM Fell English', Georgia, serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  header {
+    width: 100%;
+    max-width: 480px;
+    padding: 18px 20px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+
+  header p {
+    font-size: 0.72rem;
+    font-family: monospace;
+    color: var(--bone-dark);
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  #game-wrapper {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 10px;
+    max-width: 520px;
+    width: 100%;
+  }
+
+  #canvas-container {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  canvas {
+    display: block;
+    border: 1px solid var(--border);
+    cursor: crosshair;
+  }
+
+  #ruler {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    height: 100%;
+    width: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .ruler-mark {
+    font-family: monospace;
+    font-size: 8px;
+    color: var(--border);
+    text-align: right;
+    line-height: 1;
+  }
+
+  #side-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 110px;
+  }
+
+  .panel-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px;
+  }
+
+  .panel-label {
+    font-family: monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  #score-display {
+    font-size: 2rem;
+    color: var(--bone);
+    line-height: 1;
+  }
+
+  #height-display {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--bone-dark);
+  }
+
+  #next-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  #next-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(200,169,110,0.03) 8px,
+      rgba(200,169,110,0.03) 9px
+    );
+  }
+
+  #next-skull-canvas {
+    display: block;
+    margin: 6px auto;
+  }
+
+  #next-name-jp {
+    font-size: 0.85rem;
+    color: var(--bone);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  #next-name-sci {
+    font-size: 0.6rem;
+    font-style: italic;
+    color: var(--bone-dark);
+    text-align: center;
+    font-family: 'IM Fell English', serif;
+    margin-top: 2px;
+  }
+
+  #next-weight {
+    font-family: monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
+    text-align: center;
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+
+  #drop-guide {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    background: rgba(200,169,110,0.3);
+    pointer-events: none;
+    border-left: 1px dashed rgba(200,169,110,0.4);
+  }
+
+  #overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,8,4,0.88);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 1000;
+    pointer-events: auto;
+  }
+  #overlay.visible { display: flex; }
+
+  #overlay h2 {
+    font-size: 2rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  #overlay .result-score {
+    font-family: monospace;
+    font-size: 1rem;
+    color: var(--bone);
+    letter-spacing: 0.1em;
+  }
+
+  #species-card {
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    padding: 16px 24px;
+    max-width: 260px;
+    text-align: center;
+  }
+  #species-card .sp-label {
+    font-family: monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: block;
+  }
+  #species-card .sp-name {
+    font-size: 1.1rem;
+    color: var(--bone);
+  }
+  #species-card .sp-sci {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: var(--bone-dark);
+    margin-top: 4px;
+  }
+  #species-card .sp-fact {
+    font-size: 0.72rem;
+    color: var(--bone-dark);
+    margin-top: 10px;
+    line-height: 1.6;
+    font-family: monospace;
+  }
+
+  #restart-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'IM Fell English', serif;
+    font-size: 1rem;
+    padding: 10px 32px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: background 0.2s;
+  }
+  #restart-btn:hover { background: rgba(200,169,110,0.15); }
+
+  footer {
+    font-family: monospace;
+    font-size: 0.6rem;
+    color: var(--border);
+    letter-spacing: 0.15em;
+    padding: 16px;
+    text-align: center;
+  }
