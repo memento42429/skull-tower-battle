@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>頭骨タワーバトル — 路上博物館</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* @inject style.css */
+</style>
+</head>
+<body>
+</head>
+<body>
+
+<header>
+  <h1>頭骨タワーバトル</h1>
+  <p>SKULL TOWER — 路上博物館 prototype v0.1</p>
+</header>
+
+<div id="game-wrapper">
+  <div id="canvas-container">
+    <div id="ruler"></div>
+    <canvas id="gameCanvas" width="280" height="480"></canvas>
+    <div id="drop-guide"></div>
+  </div>
+
+  <div id="side-panel">
+    <div class="panel-box">
+      <span class="panel-label">Score</span>
+      <div id="score-display">0</div>
+    </div>
+    <div class="panel-box">
+      <span class="panel-label">Height</span>
+      <div id="height-display">0 cm</div>
+    </div>
+    <div class="panel-box" id="next-card">
+      <span class="panel-label">Next</span>
+      <canvas id="next-skull-canvas" width="80" height="64"></canvas>
+      <div id="next-name-jp">—</div>
+      <div id="next-name-sci">—</div>
+      <div id="next-weight">—</div>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+  <h2>COLLAPSED</h2>
+  <div class="result-score" id="final-score-text"></div>
+  <div id="species-card">
+    <span class="sp-label">LAST SPECIMEN</span>
+    <div class="sp-name" id="sp-name-jp"></div>
+    <div class="sp-sci" id="sp-name-sci"></div>
+    <div class="sp-fact" id="sp-fact"></div>
+    <a id="sp-link" href="#" target="_blank" style="display:block;margin-top:10px;font-family:monospace;font-size:0.65rem;color:#c8a96e;letter-spacing:0.1em;text-decoration:none;border:1px solid #5a4020;padding:6px 10px;">路上博物館 標本ページ →</a>
+  </div>
+  <button id="restart-btn" onclick="restartGame()">もう一度 / RETRY</button>
+</div>
+
+<footer>
+  一般社団法人路上博物館 — 標本データを用いた教育ゲームプロトタイプ
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+/* @inject images.js */
+/* @inject skulls.js */
+/* @inject physics.js */
+/* @inject render.js */
+/* @inject game.js */
+</script>
+</body>
+</html>
