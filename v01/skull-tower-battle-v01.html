@@ -345,45 +345,165 @@ const SKULL_SIZES = {
 };
 
 
+// ============================================================
+// 標本データ
+// id:        ファイル識別子
+// nameJp:    和名
+// nameSci:   学名
+// weight:    体重(kg) — スコア計算とサイズ決定に使用
+// specimenNo:標本番号
+// storage:   収蔵館
+// fact:       ゲームオーバー時の解説文
+// url:        路上博物館 標本ページURL
+// rw/rh:     物理ボディの幅・高さ(px) — 体重ベースで計算
+// verts:     凸包頂点リスト — 画像輪郭から自動生成
+// ============================================================
 const SKULLS = [
-  { id:'lion', url:'https://rojohaku.com/nsmt-m42347/', weight:126, nameJp:'ライオン', nameSci:'Panthera leo', specimenNo:'NSMT-M42347', storage:'国立科学博物館', fact:'メスのライオン。発達した犬歯と短い吻部が特徴。', rw:28.6, rh:35.5, verts:[{x:-14.1,y:-4.6},{x:-14.1,y:-6.3},{x:-13.8,y:-7.7},{x:-13.6,y:-8.1},{x:-0.4,y:-17.9},{x:-0.1,y:-18.0},{x:13.9,y:-8.1},{x:14.2,y:-7.7},{x:14.5,y:-6.4},{x:6.7,y:16.1},{x:6.2,y:17.1},{x:5.9,y:17.5},{x:-5.9,y:17.0},{x:-6.2,y:16.8},{x:-6.5,y:16.3},{x:-6.9,y:15.3}], scale:1.0 },
-  { id:'tsunoshima', url:'https://rojohaku.com/nsmt-m32505/', weight:12000, nameJp:'ツノシマクジラ', nameSci:'Balaenoptera omurai', specimenNo:'NSMT-M32505', storage:'国立科学博物館', fact:'タイプ標本。吻部が細長く伸びた鯨類特有の頭骨形状。', rw:50.0, rh:64.7, verts:[{x:5.3,y:-27.8},{x:24.7,y:-18.4},{x:25.2,y:-17.5},{x:26.2,y:-10.9},{x:24.9,y:-7.2},{x:-10.8,y:28.9},{x:-14.6,y:32.1},{x:-17.0,y:34.0},{x:-23.8,y:36.5},{x:-22.6,y:24.6},{x:-21.8,y:21.5},{x:-6.5,y:-21.1},{x:-5.4,y:-22.9},{x:-1.8,y:-26.4},{x:1.1,y:-27.8},{x:4.5,y:-27.9}], scale:1.0 },
-  { id:'uma', url:'https://rojohaku.com/nsmt-m01825/', weight:350, nameJp:'サバンナシマウマ', nameSci:'Equus quagga', specimenNo:'NSMT-M01825', storage:'国立科学博物館', fact:'オス。草食性を示す長い吻部と大きな臼歯が特徴。', rw:33.4, rh:39.1, verts:[{x:-17.9,y:8.4},{x:-17.5,y:6.9},{x:-16.0,y:4.2},{x:-2.3,y:-12.3},{x:1.9,y:-16.4},{x:4.1,y:-18.0},{x:10.2,y:-20.7},{x:15.5,y:-13.1},{x:13.7,y:2.2},{x:13.0,y:4.3},{x:11.3,y:7.2},{x:9.8,y:8.7},{x:-11.8,y:17.7},{x:-13.7,y:18.4},{x:-16.3,y:17.8},{x:-17.1,y:15.9}], scale:1.0 },
-  { id:'drill', url:'https://rojohaku.com/mandrill-tz-2-2/', weight:20, nameJp:'ドリル', nameSci:'Mandrillus leucophaeus', specimenNo:'TZ-1', storage:'天王寺動物園', fact:'マンドリルの近縁種。大きな犬歯を持つ。', rw:20.0, rh:24.3, verts:[{x:-10.5,y:5.6},{x:-9.0,y:0.9},{x:-3.1,y:-7.7},{x:1.1,y:-10.4},{x:6.6,y:-12.7},{x:9.3,y:-12.0},{x:9.5,y:-11.3},{x:7.9,y:1.4},{x:6.8,y:4.0},{x:2.0,y:8.9},{x:0.6,y:10.1},{x:-1.0,y:10.9},{x:-2.6,y:11.4},{x:-5.1,y:11.4},{x:-8.6,y:9.9},{x:-9.2,y:9.4}], scale:1.0 },
-  { id:'tsuchi', url:'https://rojohaku.com/usnm20992/', weight:11000, nameJp:'ツチクジラ', nameSci:'Berardius bairdii', specimenNo:'USNM20992', storage:'スミソニアン自然史博物館', fact:'タイプ標本。ハクジラ類最大種のひとつ。', rw:49.6, rh:37.7, verts:[{x:13.1,y:5.4},{x:-21.5,y:18.5},{x:-25.1,y:18.3},{x:-26.9,y:16.2},{x:-27.2,y:13.2},{x:-5.2,y:-9.7},{x:8.5,y:-18.1},{x:10.4,y:-19.1},{x:13.2,y:-18.7},{x:14.6,y:-18.1},{x:20.7,y:-11.1},{x:22.1,y:-8.1},{x:22.4,y:-2.0},{x:21.4,y:-0.2},{x:15.8,y:3.9},{x:13.6,y:5.2}], scale:1.0 },
-  { id:'hito', url:'https://rojohaku.com/rojo-hs-1/', weight:65, nameJp:'ヒト', nameSci:'Homo sapiens', specimenNo:'ROJO-HS-1', storage:'路上博物館', fact:'日本人男性、30代後半。CTスキャンから再構築。', rw:25.5, rh:28.9, verts:[{x:-11.7,y:1.7},{x:-8.7,y:-8.2},{x:-7.2,y:-10.1},{x:-5.2,y:-11.4},{x:-1.8,y:-12.5},{x:4.4,y:-12.9},{x:8.0,y:-11.9},{x:10.2,y:-10.6},{x:11.9,y:-8.8},{x:13.0,y:-6.8},{x:13.8,y:-0.6},{x:13.3,y:0.7},{x:11.4,y:3.2},{x:-4.4,y:15.2},{x:-8.0,y:15.9},{x:-11.2,y:9.9}], scale:1.0 },
-  { id:'baku', url:'https://rojohaku.com/gmnh-vm-636-2/', weight:300, nameJp:'マレーバク', nameSci:'Acrocodia indica', specimenNo:'GMNH-VM-636-2', storage:'群馬県立自然史博物館', fact:'長い鼻先を支える独特の吻部形状を持つ奇蹄類。', rw:32.7, rh:20.2, verts:[{x:-17.6,y:3.2},{x:-17.0,y:-0.1},{x:-6.4,y:-9.1},{x:2.3,y:-10.4},{x:12.4,y:-9.5},{x:14.0,y:-8.8},{x:14.9,y:-7.6},{x:15.1,y:-0.9},{x:12.1,y:7.0},{x:10.3,y:8.7},{x:8.2,y:9.4},{x:-2.1,y:9.8},{x:-4.7,y:9.5},{x:-9.7,y:8.6},{x:-14.8,y:7.0},{x:-16.4,y:6.0}], scale:1.0 },
-  { id:'kaba', url:'https://rojohaku.com/nsmt-m38622/', weight:1500, nameJp:'カバ', nameSci:'Hippopotamus amphibius', specimenNo:'NSMT-M38622', storage:'国立科学博物館', fact:'巨大な犬歯と頑丈な下顎が特徴的。', rw:40.2, rh:30.3, verts:[{x:-13.1,y:-10.7},{x:16.6,y:-12.8},{x:17.5,y:-12.1},{x:18.6,y:-3.8},{x:13.0,y:9.9},{x:12.5,y:10.8},{x:11.2,y:12.2},{x:10.1,y:13.3},{x:8.7,y:14.1},{x:6.8,y:15.1},{x:4.4,y:15.4},{x:1.2,y:15.1},{x:-14.3,y:7.9},{x:-21.6,y:1.3},{x:-17.9,y:-7.3},{x:-13.3,y:-10.6}], scale:1.0 },
-  { id:'zou', url:'https://rojohaku.com/nsmt-m56341/', weight:4000, nameJp:'アジアゾウ', nameSci:'Elephas maximus', specimenNo:'NSMT-M56341', storage:'国立科学博物館', fact:'非常に大きく複雑な頭骨。象牙（門歯）の根元が発達。', rw:44.8, rh:60.0, verts:[{x:19.9,y:-7.2},{x:13.5,y:21.4},{x:11.1,y:25.2},{x:8.8,y:26.8},{x:4.5,y:28.3},{x:-3.4,y:27.7},{x:-23.9,y:18.1},{x:-24.9,y:13.6},{x:-14.2,y:-12.4},{x:-5.2,y:-25.4},{x:-0.3,y:-29.3},{x:5.7,y:-31.7},{x:11.7,y:-30.5},{x:14.7,y:-28.9},{x:17.2,y:-24.3},{x:19.5,y:-11.7}], scale:1.0 },
+  {
+    id:         'lion',
+    nameJp:     'ライオン',
+    nameSci:    'Panthera leo',
+    weight:     126,
+    specimenNo: 'NSMT-M42347',
+    storage:    '国立科学博物館',
+    fact:       'メスのライオン。発達した犬歯と短い吻部が特徴。',
+    url:        'https://rojohaku.com/nsmt-m42347/',
+    rw:         28.6,
+    rh:         35.5,
+    verts:      [{x:-14.1,y:-4.6},{x:-14.1,y:-6.3},{x:-13.8,y:-7.7},{x:-13.6,y:-8.1},{x:-0.4,y:-17.9},{x:-0.1,y:-18.0},{x:13.9,y:-8.1},{x:14.2,y:-7.7},{x:14.5,y:-6.4},{x:6.7,y:16.1},{x:6.2,y:17.1},{x:5.9,y:17.5},{x:-5.9,y:17.0},{x:-6.2,y:16.8},{x:-6.5,y:16.3},{x:-6.9,y:15.3}],
+    scale:      1.0,
+  },
+  {
+    id:         'tsunoshima',
+    nameJp:     'ツノシマクジラ',
+    nameSci:    'Balaenoptera omurai',
+    weight:     12000,
+    specimenNo: 'NSMT-M32505',
+    storage:    '国立科学博物館',
+    fact:       'タイプ標本。吻部が細長く伸びた鯨類特有の頭骨形状。',
+    url:        'https://rojohaku.com/nsmt-m32505/',
+    rw:         50.0,
+    rh:         64.7,
+    verts:      [{x:5.3,y:-27.8},{x:24.7,y:-18.4},{x:25.2,y:-17.5},{x:26.2,y:-10.9},{x:24.9,y:-7.2},{x:-10.8,y:28.9},{x:-14.6,y:32.1},{x:-17.0,y:34.0},{x:-23.8,y:36.5},{x:-22.6,y:24.6},{x:-21.8,y:21.5},{x:-6.5,y:-21.1},{x:-5.4,y:-22.9},{x:-1.8,y:-26.4},{x:1.1,y:-27.8},{x:4.5,y:-27.9}],
+    scale:      1.0,
+  },
+  {
+    id:         'uma',
+    nameJp:     'サバンナシマウマ',
+    nameSci:    'Equus quagga',
+    weight:     350,
+    specimenNo: 'NSMT-M01825',
+    storage:    '国立科学博物館',
+    fact:       'オス。草食性を示す長い吻部と大きな臼歯が特徴。',
+    url:        'https://rojohaku.com/nsmt-m01825/',
+    rw:         33.4,
+    rh:         39.1,
+    verts:      [{x:-17.9,y:8.4},{x:-17.5,y:6.9},{x:-16.0,y:4.2},{x:-2.3,y:-12.3},{x:1.9,y:-16.4},{x:4.1,y:-18.0},{x:10.2,y:-20.7},{x:15.5,y:-13.1},{x:13.7,y:2.2},{x:13.0,y:4.3},{x:11.3,y:7.2},{x:9.8,y:8.7},{x:-11.8,y:17.7},{x:-13.7,y:18.4},{x:-16.3,y:17.8},{x:-17.1,y:15.9}],
+    scale:      1.0,
+  },
+  {
+    id:         'drill',
+    nameJp:     'ドリル',
+    nameSci:    'Mandrillus leucophaeus',
+    weight:     20,
+    specimenNo: 'TZ-1',
+    storage:    '天王寺動物園',
+    fact:       'マンドリルの近縁種。大きな犬歯を持つ。',
+    url:        'https://rojohaku.com/mandrill-tz-2-2/',
+    rw:         20.0,
+    rh:         24.3,
+    verts:      [{x:-10.5,y:5.6},{x:-9.0,y:0.9},{x:-3.1,y:-7.7},{x:1.1,y:-10.4},{x:6.6,y:-12.7},{x:9.3,y:-12.0},{x:9.5,y:-11.3},{x:7.9,y:1.4},{x:6.8,y:4.0},{x:2.0,y:8.9},{x:0.6,y:10.1},{x:-1.0,y:10.9},{x:-2.6,y:11.4},{x:-5.1,y:11.4},{x:-8.6,y:9.9},{x:-9.2,y:9.4}],
+    scale:      1.0,
+  },
+  {
+    id:         'tsuchi',
+    nameJp:     'ツチクジラ',
+    nameSci:    'Berardius bairdii',
+    weight:     11000,
+    specimenNo: 'USNM20992',
+    storage:    'スミソニアン自然史博物館',
+    fact:       'タイプ標本。ハクジラ類最大種のひとつ。',
+    url:        'https://rojohaku.com/usnm20992/',
+    rw:         49.6,
+    rh:         37.7,
+    verts:      [{x:13.1,y:5.4},{x:-21.5,y:18.5},{x:-25.1,y:18.3},{x:-26.9,y:16.2},{x:-27.2,y:13.2},{x:-5.2,y:-9.7},{x:8.5,y:-18.1},{x:10.4,y:-19.1},{x:13.2,y:-18.7},{x:14.6,y:-18.1},{x:20.7,y:-11.1},{x:22.1,y:-8.1},{x:22.4,y:-2.0},{x:21.4,y:-0.2},{x:15.8,y:3.9},{x:13.6,y:5.2}],
+    scale:      1.0,
+  },
+  {
+    id:         'hito',
+    nameJp:     'ヒト',
+    nameSci:    'Homo sapiens',
+    weight:     65,
+    specimenNo: 'ROJO-HS-1',
+    storage:    '路上博物館',
+    fact:       '日本人男性、30代後半。CTスキャンから再構築。',
+    url:        'https://rojohaku.com/rojo-hs-1/',
+    rw:         25.5,
+    rh:         28.9,
+    verts:      [{x:-11.7,y:1.7},{x:-8.7,y:-8.2},{x:-7.2,y:-10.1},{x:-5.2,y:-11.4},{x:-1.8,y:-12.5},{x:4.4,y:-12.9},{x:8.0,y:-11.9},{x:10.2,y:-10.6},{x:11.9,y:-8.8},{x:13.0,y:-6.8},{x:13.8,y:-0.6},{x:13.3,y:0.7},{x:11.4,y:3.2},{x:-4.4,y:15.2},{x:-8.0,y:15.9},{x:-11.2,y:9.9}],
+    scale:      1.0,
+  },
+  {
+    id:         'baku',
+    nameJp:     'マレーバク',
+    nameSci:    'Acrocodia indica',
+    weight:     300,
+    specimenNo: 'GMNH-VM-636-2',
+    storage:    '群馬県立自然史博物館',
+    fact:       '長い鼻先を支える独特の吻部形状を持つ奇蹄類。',
+    url:        'https://rojohaku.com/gmnh-vm-636-2/',
+    rw:         32.7,
+    rh:         20.2,
+    verts:      [{x:-17.6,y:3.2},{x:-17.0,y:-0.1},{x:-6.4,y:-9.1},{x:2.3,y:-10.4},{x:12.4,y:-9.5},{x:14.0,y:-8.8},{x:14.9,y:-7.6},{x:15.1,y:-0.9},{x:12.1,y:7.0},{x:10.3,y:8.7},{x:8.2,y:9.4},{x:-2.1,y:9.8},{x:-4.7,y:9.5},{x:-9.7,y:8.6},{x:-14.8,y:7.0},{x:-16.4,y:6.0}],
+    scale:      1.0,
+  },
+  {
+    id:         'kaba',
+    nameJp:     'カバ',
+    nameSci:    'Hippopotamus amphibius',
+    weight:     1500,
+    specimenNo: 'NSMT-M38622',
+    storage:    '国立科学博物館',
+    fact:       '巨大な犬歯と頑丈な下顎が特徴的。',
+    url:        'https://rojohaku.com/nsmt-m38622/',
+    rw:         40.2,
+    rh:         30.3,
+    verts:      [{x:-13.1,y:-10.7},{x:16.6,y:-12.8},{x:17.5,y:-12.1},{x:18.6,y:-3.8},{x:13.0,y:9.9},{x:12.5,y:10.8},{x:11.2,y:12.2},{x:10.1,y:13.3},{x:8.7,y:14.1},{x:6.8,y:15.1},{x:4.4,y:15.4},{x:1.2,y:15.1},{x:-14.3,y:7.9},{x:-21.6,y:1.3},{x:-17.9,y:-7.3},{x:-13.3,y:-10.6}],
+    scale:      1.0,
+  },
+  {
+    id:         'zou',
+    nameJp:     'アジアゾウ',
+    nameSci:    'Elephas maximus',
+    weight:     4000,
+    specimenNo: 'NSMT-M56341',
+    storage:    '国立科学博物館',
+    fact:       '非常に大きく複雑な頭骨。象牙（門歯）の根元が発達。',
+    url:        'https://rojohaku.com/nsmt-m56341/',
+    rw:         44.8,
+    rh:         60.0,
+    verts:      [{x:19.9,y:-7.2},{x:13.5,y:21.4},{x:11.1,y:25.2},{x:8.8,y:26.8},{x:4.5,y:28.3},{x:-3.4,y:27.7},{x:-23.9,y:18.1},{x:-24.9,y:13.6},{x:-14.2,y:-12.4},{x:-5.2,y:-25.4},{x:-0.3,y:-29.3},{x:5.7,y:-31.7},{x:11.7,y:-30.5},{x:14.7,y:-28.9},{x:17.2,y:-24.3},{x:19.5,y:-11.7}],
+    scale:      1.0,
+  },
 ];
-
-
-function makeEllipseVerts(w, h, n=16) {
-  const verts = [];
-  for (let i=0;i<n;i++){const a=(i/n)*Math.PI*2;verts.push({x:Math.cos(a)*w/2,y:Math.sin(a)*h/2});}
-  return verts;
-}
-function makeRoundedRectVerts(w, h) {
-  const r=Math.min(w,h)*0.25,verts=[];
-  const corners=[[w/2-r,-h/2],[w/2,-h/2+r],[w/2,h/2-r],[w/2-r,h/2],[-w/2+r,h/2],[-w/2,h/2-r],[-w/2,-h/2+r],[-w/2+r,-h/2]];
-  for(let i=0;i<corners.length;i++){const[cx,cy]=corners[i],[nx,ny]=corners[(i+1)%corners.length];verts.push({x:cx,y:cy},{x:(cx+nx)/2,y:(cy+ny)/2});}
-  return verts;
-}
-function makeElongatedVerts(w, h) {
-  const verts=[],steps=20;
-  for(let i=0;i<steps;i++){const t=i/steps,a=t*Math.PI*2;const rx=(a<Math.PI)?w/2*(0.5+0.5*Math.cos(a-Math.PI)):w/2;verts.push({x:Math.cos(a)*rx,y:Math.sin(a)*h/2});}
-  return verts;
-}
 
 const { Engine, Bodies, Body, Composite } = Matter;
 
-const CANVAS_W = 280, CANVAS_H = 480;
-const GROUND_Y = CANVAS_H - 30; // 旧床（参照用）
-const WALL_T   = 40;
-const ISLAND_Y = Math.round(CANVAS_H * 0.77); // 島のY座標
-const ISLAND_W = 200;                          // 島の幅
-const ISLAND_T = 12;                           // 島の厚さ
-const DROP_Y   = 40;
+// ============================================================
+// ゲーム定数
+// ============================================================
+const CANVAS_W  = 280;
+const CANVAS_H  = 480;
+const DROP_Y    = 40;  // 役物の落下開始Y座標
+
+// 島（台）の設定
+const ISLAND_Y  = Math.round(CANVAS_H * 0.77); // 島の中心Y座標
+const ISLAND_W  = 200;                          // 島の幅(px)
+const ISLAND_T  = 12;                           // 島の厚さ(px)
+
+// ゲームオーバー判定：島の縁よりGO_MARGIN px上を超えたら終了
+const GO_MARGIN   = 30;
+const GAME_OVER_Y = ISLAND_Y - GO_MARGIN;
 
 let engine, world, currentBody, currentSkull, nextSkull;
 let score = 0, dropX = CANVAS_W/2, isDropping = false, gameOver = false;
@@ -411,6 +531,12 @@ function initEngine() {
 function pickRandomSkull() { return SKULLS[Math.floor(Math.random()*SKULLS.length)]; }
 function getBodyScale(skull) { return skull.scale * 1.8; }
 
+// ============================================================
+// 役物ボディ生成
+// Bodies.fromVertices はMatter.jsが内部で重心を再計算するため、
+// 指定座標と実際のbody.positionがズレる。
+// このズレを renderOffsetX/Y に記録し、描画時に補正する。
+// ============================================================
 function createSkullBody(skull, x, y) {
   const s = getBodyScale(skull);
   const scaledVerts = skull.verts.map(v=>({x:v.x*s, y:v.y*s}));
@@ -503,7 +629,7 @@ function drawFrame() {
   ctx.fillStyle=grad; ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
 
   ctx.strokeStyle='rgba(90,64,32,0.3)'; ctx.lineWidth=0.5;
-  for(let y=GROUND_Y;y>0;y-=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
+  for(let y=ISLAND_Y;y>0;y-=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
 
   // 島の描画
   ctx.fillStyle='#3d2b1a';
@@ -545,9 +671,9 @@ function drawFrame() {
   }
 
   if(placedBodies.length>0){
-    let minY=GROUND_Y;
+    let minY=ISLAND_Y;
     for(const b of placedBodies){if(b.bounds.min.y<minY) minY=b.bounds.min.y;}
-    document.getElementById('height-display').textContent=Math.round((GROUND_Y-minY)*0.5)+' cm';
+    document.getElementById('height-display').textContent=Math.round((ISLAND_Y-minY)*0.5)+' cm';
   }
 
   if(!gameOver){
@@ -607,15 +733,18 @@ canvas.addEventListener('touchend',(e)=>{ stopRotate(); if(!gameOver) dropCurren
 
 function buildRuler() {
   const ruler=document.getElementById('ruler'); ruler.innerHTML='';
-  for(let y=GROUND_Y;y>=0;y-=80){
+  for(let y=ISLAND_Y;y>=0;y-=80){
     const mark=document.createElement('div');
     mark.className='ruler-mark'; mark.style.position='absolute';
     mark.style.bottom=(100-y/CANVAS_H*100)+'%';
-    mark.textContent=Math.round((GROUND_Y-y)*0.5);
+    mark.textContent=Math.round((ISLAND_Y-y)*0.5);
     ruler.appendChild(mark);
   }
 }
 
+// ============================================================
+// メインループ
+// ============================================================
 let lastTime=0;
 function loop(time){
   const delta=time-lastTime; lastTime=time;
