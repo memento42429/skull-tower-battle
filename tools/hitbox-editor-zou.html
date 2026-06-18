@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>当たり判定エディタ — アジアゾウ</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: monospace; background: #1a1a2e; color: #eee; display: flex; height: 100vh; overflow: hidden; }
+#left { flex: 1; display: flex; align-items: center; justify-content: center; background: #111; }
+canvas { cursor: crosshair; }
+#right { width: 300px; padding: 12px; overflow-y: auto; background: #16213e; border-left: 1px solid #444; font-size: 12px; }
+h2 { margin: 0 0 10px; font-size: 13px; color: #ccc; }
+.section { margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+.section-title { font-size: 11px; color: #888; margin-bottom: 6px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.btn {
+  padding: 5px 9px; background: #2a2a3e; color: #ccc;
+  border: 1px solid #444; cursor: pointer; font-size: 11px;
+  border-radius: 3px; font-family: monospace;
+}
+.btn:hover { background: #3a3a5e; }
+.btn.active { background: #0f3460; border-color: #e94560; color: #fff; }
+.btn.danger { border-color: #833; color: #f88; }
+.btn.danger:hover { background: #400; }
+#output {
+  background: #0a0a1a; padding: 8px; font-size: 10px;
+  white-space: pre-wrap; word-break: break-all;
+  border: 1px solid #333; margin-top: 6px;
+  max-height: 250px; overflow-y: auto; color: #8f8;
+}
+#copy-btn {
+  display: block; width: 100%; margin-top: 5px; padding: 7px;
+  background: #0f3460; color: white; border: 1px solid #e94560;
+  cursor: pointer; font-size: 11px; border-radius: 3px; font-family: monospace;
+}
+#copy-btn:hover { background: #1a4a80; }
+.legend { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.info-box { font-size: 10px; color: #777; margin-top: 6px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div id="left">
+  <canvas id="canvas" width="580" height="640"></canvas>
+</div>
+
+<div id="right">
+  <h2>当たり判定エディタ<br>アジアゾウ</h2>
+
+  <div class="section">
+    <div class="section-title">モード</div>
+    <div class="btn-row">
+      <button class="btn active" id="btn-move" onclick="setMode('move')">移動</button>
+      <button class="btn" id="btn-add"  onclick="setMode('add')">頂点追加</button>
+      <button class="btn danger" id="btn-del" onclick="setMode('del')">頂点削除</button>
+    </div>
+    <div class="info-box">
+      移動: 頂点をドラッグ<br>
+      頂点追加: 辺の上でクリック<br>
+      頂点削除: 頂点をクリック
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">プラットフォーム（積み面）</div>
+    <div class="btn-row">
+      <button class="btn" id="btn-top" onclick="setMode('top')">上面を引く</button>
+      <button class="btn" id="btn-bot" onclick="setMode('bot')">下面を引く</button>
+    </div>
+    <div class="btn-row" style="margin-top:4px;">
+      <button class="btn danger" onclick="clearPlatform('top')">上面削除</button>
+      <button class="btn danger" onclick="clearPlatform('bot')">下面削除</button>
+    </div>
+    <div class="info-box">ドラッグして矩形を描く</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#ff8800;"></div>上面プラットフォーム</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0088ff;"></div>下面プラットフォーム</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">表示</div>
+    <div class="btn-row">
+      <button class="btn" onclick="toggleImage()">画像 ON/OFF</button>
+      <button class="btn danger" onclick="resetAll()">全リセット</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">出力（skulls.jsに貼り付け）</div>
+    <div id="output"></div>
+    <button id="copy-btn" onclick="copyOutput()">クリップボードにコピー</button>
+  </div>
+</div>
+
+<script>
+// ── データ ──────────────────────────────────────────────
+const ZOU_IMG = "data:image/png;base64,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";
+
+const RW = 44.8, RH = 60.0;
+
+const INIT_VERTS = [
+  {x:19.9,y:-7.2},{x:13.5,y:21.4},{x:11.1,y:25.2},{x:8.8,y:26.8},
+  {x:4.5,y:28.3},{x:-3.4,y:27.7},{x:-23.9,y:18.1},{x:-24.9,y:13.6},
+  {x:-14.2,y:-12.4},{x:-5.2,y:-25.4},{x:-0.3,y:-29.3},{x:5.7,y:-31.7},
+  {x:11.7,y:-30.5},{x:14.7,y:-28.9},{x:17.2,y:-24.3},{x:19.5,y:-11.7}
+];
+
+// ── 状態 ────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const SCALE = 7;
+const CX = canvas.width / 2;
+const CY = canvas.height / 2;
+
+let verts = INIT_VERTS.map(v => ({...v}));
+let topPlat = null, botPlat = null;
+let mode = 'move';
+let dragIdx = -1;
+let showImage = true;
+let isDragging = false;
+let dragStart = null;
+let platDraft = null;
+
+const img = new Image();
+img.onload = () => draw();
+
+// 実際のゾウ画像をsrc/images.jsから動的に取得するため
+// このファイルと同ディレクトリにimages.jsが無い場合はフォールバック描画
+fetch('../src/images.js')
+  .then(r => r.text())
+  .then(src => {
+    const m = src.match(/zou:\s*"(data:image\/png;base64,[^"]+)"/);
+    if (m) img.src = m[1];
+    else { img.src = ZOU_IMG; } // fallback
+  })
+  .catch(() => { img.src = ZOU_IMG; });
+
+// ── 座標変換 ─────────────────────────────────────────────
+function toCanvas(v) { return { x: CX + v.x * SCALE, y: CY + v.y * SCALE }; }
+function toVert(c)   { return { x: (c.x - CX) / SCALE, y: (c.y - CY) / SCALE }; }
+function snap(n)     { return Math.round(n * 10) / 10; }
+function snapV(v)    { return { x: snap(v.x), y: snap(v.y) }; }
+
+// ── 描画 ─────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // グリッド
+  ctx.lineWidth = 0.5;
+  for (let x = CX % (SCALE*5); x < canvas.width; x += SCALE*5) {
+    ctx.strokeStyle = x === Math.round(CX) ? '#444' : '#222';
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = CY % (SCALE*5); y < canvas.height; y += SCALE*5) {
+    ctx.strokeStyle = y === Math.round(CY) ? '#444' : '#222';
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+
+  // 画像
+  if (showImage && img.complete && img.naturalWidth > 0) {
+    ctx.globalAlpha = 0.55;
+    ctx.drawImage(img,
+      CX - RW/2 * SCALE, CY - RH/2 * SCALE,
+      RW * SCALE, RH * SCALE
+    );
+    ctx.globalAlpha = 1;
+  }
+
+  // メイン多角形
+  ctx.beginPath();
+  verts.forEach((v, i) => {
+    const c = toCanvas(v);
+    i === 0 ? ctx.moveTo(c.x, c.y) : ctx.lineTo(c.x, c.y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,255,136,0.1)';
+  ctx.fill();
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 辺のホバーヒント（add モード時）
+  if (mode === 'add') {
+    verts.forEach((v, i) => {
+      const next = verts[(i+1) % verts.length];
+      const a = toCanvas(v), b = toCanvas(next);
+      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+      ctx.beginPath();
+      ctx.arc(mx, my, 4, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,0,0.5)';
+      ctx.fill();
+    });
+  }
+
+  // 頂点
+  verts.forEach((v, i) => {
+    const c = toCanvas(v);
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, dragIdx === i ? 8 : 6, 0, Math.PI*2);
+    ctx.fillStyle = dragIdx === i ? '#ffe000' : (mode === 'del' ? '#ff4444' : '#00ff88');
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText(i, c.x + 9, c.y - 5);
+  });
+
+  // プラットフォーム
+  drawPlat(topPlat, '#ff8800');
+  drawPlat(botPlat, '#0088ff');
+  drawPlat(platDraft, '#ffff00');
+
+  updateOutput();
+}
+
+function drawPlat(p, color) {
+  if (!p) return;
+  const cx = CX + p.x * SCALE;
+  const cy = CY + p.y * SCALE;
+  const pw = p.w * SCALE;
+  const ph = Math.max(p.h * SCALE, 2);
+  ctx.fillStyle = color + '33';
+  ctx.fillRect(cx - pw/2, cy - ph/2, pw, ph);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - pw/2, cy - ph/2, pw, ph);
+  ctx.fillStyle = color;
+  ctx.font = '10px monospace';
+  ctx.fillText(`w:${p.w} h:${p.h}`, cx - pw/2 + 2, cy - ph/2 - 3);
+}
+
+// ── ヒットテスト ─────────────────────────────────────────
+function hitVert(mx, my) {
+  for (let i = 0; i < verts.length; i++) {
+    const c = toCanvas(verts[i]);
+    if ((mx-c.x)**2 + (my-c.y)**2 < 100) return i;
+  }
+  return -1;
+}
+
+function nearEdge(mx, my) {
+  let best = -1, bestD = 12;
+  verts.forEach((v, i) => {
+    const nv = verts[(i+1) % verts.length];
+    const a = toCanvas(v), b = toCanvas(nv);
+    const dx = b.x-a.x, dy = b.y-a.y;
+    const len2 = dx*dx + dy*dy;
+    if (!len2) return;
+    const t = Math.max(0, Math.min(1, ((mx-a.x)*dx + (my-a.y)*dy) / len2));
+    const d = Math.hypot(a.x+t*dx - mx, a.y+t*dy - my);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
+// ── マウスイベント ───────────────────────────────────────
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+canvas.addEventListener('mousedown', e => {
+  const {x, y} = getPos(e);
+  if (mode === 'move') {
+    dragIdx = hitVert(x, y);
+    if (dragIdx >= 0) isDragging = true;
+  } else if (mode === 'add') {
+    const edge = nearEdge(x, y);
+    if (edge >= 0) {
+      verts.splice(edge+1, 0, snapV(toVert({x, y})));
+      draw();
+    }
+  } else if (mode === 'del') {
+    const idx = hitVert(x, y);
+    if (idx >= 0 && verts.length > 3) { verts.splice(idx, 1); draw(); }
+  } else if (mode === 'top' || mode === 'bot') {
+    isDragging = true;
+    dragStart = {x, y};
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const {x, y} = getPos(e);
+  if (mode === 'move' && dragIdx >= 0) {
+    verts[dragIdx] = snapV(toVert({x, y}));
+  } else if ((mode === 'top' || mode === 'bot') && dragStart) {
+    const v1 = toVert(dragStart), v2 = toVert({x, y});
+    platDraft = {
+      x: snap((v1.x + v2.x) / 2),
+      y: snap((v1.y + v2.y) / 2),
+      w: snap(Math.abs(v2.x - v1.x)),
+      h: snap(Math.abs(v2.y - v1.y))
+    };
+  }
+  draw();
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (platDraft) {
+    if (mode === 'top') topPlat = platDraft;
+    else if (mode === 'bot') botPlat = platDraft;
+    platDraft = null;
+  }
+  isDragging = false;
+  dragIdx = -1;
+  dragStart = null;
+  draw();
+});
+
+// ── UI ───────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.btn[id^="btn-"]').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('btn-' + m);
+  if (el) el.classList.add('active');
+  draw();
+}
+
+function clearPlatform(which) {
+  if (which === 'top') topPlat = null;
+  else botPlat = null;
+  draw();
+}
+
+function toggleImage() { showImage = !showImage; draw(); }
+
+function resetAll() {
+  if (!confirm('全リセットしますか？')) return;
+  verts = INIT_VERTS.map(v => ({...v}));
+  topPlat = null; botPlat = null; platDraft = null;
+  draw();
+}
+
+// ── 出力 ─────────────────────────────────────────────────
+function buildOutput() {
+  const vStr = 'verts:      [' + verts.map(v => `{x:${v.x},y:${v.y}}`).join(',') + ']';
+  const tStr = topPlat
+    ? `topPlatform:{x:${topPlat.x},y:${topPlat.y},w:${topPlat.w},h:${topPlat.h}}`
+    : 'topPlatform:null';
+  const bStr = botPlat
+    ? `botPlatform:{x:${botPlat.x},y:${botPlat.y},w:${botPlat.w},h:${botPlat.h}}`
+    : 'botPlatform:null';
+  return [vStr, tStr, bStr].join(',\n');
+}
+
+function updateOutput() {
+  document.getElementById('output').textContent = buildOutput();
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(buildOutput()).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'コピーしました！';
+    setTimeout(() => { btn.textContent = 'クリップボードにコピー'; }, 1500);
+  });
+}
+
+draw();
+</script>
+</body>
+</html>
